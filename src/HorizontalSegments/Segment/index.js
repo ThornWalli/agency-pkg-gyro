@@ -37,6 +37,7 @@ module.exports = Controller.extend({
     initialize: function() {
         Controller.prototype.initialize.apply(this, arguments);
         this.model.on('change:width', onChangeWidth.bind(this));
+        observer.setup();
         observer.register(this.cid, onObserver.bind(this));
 
     },

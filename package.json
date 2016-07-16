@@ -29,6 +29,7 @@
     "url": "git+https://github.com/StephanGerbeth/agency-pkg-docs.git"
   },
   "scripts": {
+    "heroku": "node node_modules/gulp/bin/gulp run --serverConfig=./env/config/local.json --configTasks=./env/config/tasks.json --env=production --server=agency-server",
     "install": "node ./install.js",
     "dev": "node node_modules/gulp/bin/gulp run --serverConfig=node_modules/agency-boilerplate/env/config/local.json --configTasks=env/config/tasks.json --env=package-development --server=agency-server",
     "prod": "node node_modules/gulp/bin/gulp run --serverConfig=node_modules/agency-boilerplate/env/config/local.json --configTasks=env/config/tasks.json --env=production --server=agency-server"

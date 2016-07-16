@@ -6,13 +6,8 @@
   border: solid #cccccc;
   border-width: 1px 1px 1px 0px;
   background-color: rgba(0, 0, 0, 0.05);
-
-
-font-size: 11px;
-.info {
-  
-}
-
+  font-size: 11px;
+  .info {}
   .bar {
     position: absolute;
     top: 0;
@@ -24,6 +19,16 @@ font-size: 11px;
     }
     &.right {
       right: 0;
+    }
+  }
+  &.in {
+    .bar {
+      background: rgba(0, 255, 0, 0.2);
+    }
+  }
+  &.out {
+    .bar {
+      background: rgba(255, 0, 0, 0.2);
     }
   }
 }

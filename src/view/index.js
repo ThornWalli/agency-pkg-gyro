@@ -51,11 +51,11 @@ module.exports = Controller.extend({
         this.barRightEl.style.width = (1 - Math.abs(progress)) * 50 + '%';
 
         if (progress >= -this.model.offset && progress <= this.model.offset) {
-            this.barLeftEl.style.backgroundColor = 'green';
-            this.barRightEl.style.backgroundColor = 'green';
+            this.el.classList.remove('out');
+            this.el.classList.add('in');
         } else {
-            this.barLeftEl.style.backgroundColor = 'red';
-            this.barRightEl.style.backgroundColor = 'red';
+            this.el.classList.remove('in');
+            this.el.classList.add('out');
         }
 
         var log = [];

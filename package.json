@@ -5,34 +5,30 @@
   "keywords": [
     "boilerplate",
     "package",
-    "docs"
+    "gyro"
   ],
-  "homepage": "https://github.com/StephanGerbeth/agency-pkg-docs#readme",
+  "homepage": "https://github.com/StephanGerbeth/agency-pkg-gyro#readme",
   "bugs": {
-    "url": "https://github.com/StephanGerbeth/agency-pkg-docs/issues"
+    "url": "https://github.com/StephanGerbeth/agency-pkg-gyro/issues"
   },
   "license": "MIT",
-  "author": "Stephan Gerbeth <stephan.gerbeth@gmail.com>",
+  "author": "Thorn Walli <lammpee@gmail.com>",
   "contributors": [
     {
-      "name": "Stephan Gerbeth",
-      "email": "stephan.gerbeth@grabarzundpartner.de"
-    },
-    {
       "name": "Thorn Walli",
-      "email": "lammpee@gmail.com; thorn.walli@grabarzundpartner.de"
+      "email": "lammpee@gmail.com"
     }
   ],
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/StephanGerbeth/agency-pkg-docs.git"
+    "url": "git+https://github.com/ThornWalli/agency-pkg-gyro.git"
   },
   "scripts": {
-    "heroku": "node node_modules/gulp/bin/gulp run --serverConfig=node_modules/agency-boilerplate/env/config/local.json --configTasks=./env/config/tasks.json --env=package-development --env=production --server=agency-server",
     "install": "node ./install.js",
+    "heroku": "node node_modules/gulp/bin/gulp run --serverConfig=node_modules/agency-boilerplate/env/config/local.json --configTasks=./env/config/tasks.json --env=package-production --server=agency-server",
     "dev": "node node_modules/gulp/bin/gulp run --serverConfig=node_modules/agency-boilerplate/env/config/local.json --configTasks=env/config/tasks.json --env=package-development --server=agency-server",
-    "prod": "node node_modules/gulp/bin/gulp run --serverConfig=node_modules/agency-boilerplate/env/config/local.json --configTasks=env/config/tasks.json --env=production --server=agency-server"
+    "prod": "node node_modules/gulp/bin/gulp run --serverConfig=node_modules/agency-boilerplate/env/config/local.json --configTasks=env/config/tasks.json --env=package-production --server=agency-server"
   },
   "dependencies": {
     "agency-pkg-base": "git+https://git@github.com/StephanGerbeth/agency-pkg-base.git#feature/flat-files",

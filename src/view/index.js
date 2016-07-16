@@ -4,7 +4,6 @@ var Controller = require('agency-pkg-base/Controller');
 var DomModel = require('agency-pkg-base/DomModel');
 var dataTypeDefinition = require('agency-pkg-base/dataTypeDefinition');
 var Bounds = require('agency-pkg-base/Bounds');
-var Vector = require('agency-pkg-base/Vector');
 var observer = require('../observer');
 
 module.exports = Controller.extend({
@@ -60,8 +59,7 @@ module.exports = Controller.extend({
 
         var log = [];
         log.push('Index: ' + this.model.index);
-        log.push(progress);
-        log.push(Math.abs(progress));
+        log.push(parseInt(progress*100)/100);
         this.infoEl.innerHTML = log.join('<br />');
     },
     onInactive: function() {

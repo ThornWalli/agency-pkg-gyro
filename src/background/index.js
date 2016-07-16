@@ -21,10 +21,20 @@ module.exports = Controller.extend({
 
         this.targetModel.on('change:viewWidth', onChangeTargetViewWidth.bind(this));
 
+        this.canvas = document.createElement('canvas');
         this.backgroundEl = this.queryByHook('background');
         observer.register(this.cid, onObserver.bind(this));
 
         onChangeTargetViewWidth.bind(this)(this.targetModel, this.targetModel.viewWidth);
+
+        var scope = this;
+        window.addEventListener('resize', global.animationFrame.throttle('agency-pkg-gyro-resize', function() {
+            refreshSize(scope);
+        }, function() {
+            generateBackground(scope, scope.targetModel.viewWidth);
+            scope.backgroundEl.style.background = 'url("' + scope.image + '") ' + observer.position.z * scope.width + 'px 0';
+        }));
+
     }
 });
 
@@ -32,28 +42,29 @@ function onObserver(observer) {
     this.backgroundEl.style.background = 'url("' + this.image + '") ' + observer.position.z * this.width + 'px 0';
 }
 
+function refreshSize(scope) {
+    scope.width = scope.el.offsetWidth;
+    scope.height = scope.el.offsetHeight;
+    scope.canvas.width = scope.width;
+    scope.canvas.height = scope.height;
+}
+
 function generateBackground(scope, viewWidth) {
 
-    var width = scope.width = scope.el.offsetWidth;
-    var height = scope.height = scope.el.offsetHeight;
-
-    scope.canvas = document.createElement('canvas');
-    scope.context = scope.canvas.getContext('2d');
-    // scope.backgroundEl.appendChild(scope.canvas);
+    var canvas = scope.canvas;
+    var context = canvas.getContext('2d');
 
 
-    scope.canvas.width = width;
-    scope.canvas.height = height;
-    var context = scope.context;
-    var backgroundWidth = width * (viewWidth) - 2;
-    // backgroundWidth -= scope.targetModel.offset;
-    context.rect(1, 1, backgroundWidth, height - 2);
-    context.stroke();
-
-    scope.image = scope.canvas.toDataURL();
+    var backgroundWidth = scope.width * (viewWidth);
+    // context.clearRect(0, 0, backgroundWidth.width, scope.height);
+    context.rect(0, 0, backgroundWidth, scope.height);
+      context.fillStyle = 'rgba(0,0,255,.1)';
+      context.fill();
+    scope.image = canvas.toDataURL();
 
 }
 
 function onChangeTargetViewWidth(model, viewWidth) {
+    refreshSize(this);
     generateBackground(this, viewWidth);
 }

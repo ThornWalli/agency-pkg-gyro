@@ -17,5 +17,5 @@ module.exports = Controller.extend({
 
 function onObserver(observer) {
     this.directionEl.innerHTML = observer.direction;
-        this.valueEl.innerHTML =  observer.position.z,observer.directionBuffer.getAverage();
+        // this.valueEl.innerHTML =  observer.position.z,observer.directionBuffer.getAverage();
 }

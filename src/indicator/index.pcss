@@ -1,0 +1,24 @@
+$border_radius: calc(4 / 16)em;
+
+.pkg[data-pkg="agency-pkg-gyro/indicator"] {
+  position: relative;
+  font-size: 1rem;
+  width: 100%;
+  height: calc(10 / 16)em;
+  .bar {
+    display: inline-block;
+    position: absolute;
+    left: 0;
+    height: 100%;
+    background-color: #739efc;
+    border-radius: 0 $border_radius $border_radius 0;
+  }
+  &.right {
+    .bar {
+      position: absolute;
+      left: auto;
+      right: 0;
+      border-radius: $border_radius 0 0 $border_radius;
+    }
+  }
+}

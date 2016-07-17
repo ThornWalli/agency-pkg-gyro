@@ -1,0 +1,11 @@
+$border_radius: calc(4 / 16)em;
+
+.pkg[data-pkg="agency-pkg-gyro/indicator/bar-center"] {
+  @extend .pkg[data-pkg="agency-pkg-gyro/indicator"];
+  .bar {
+    @extend .pkg[data-pkg="agency-pkg-gyro/indicator"] .bar;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: $border_radius;
+  }
+}

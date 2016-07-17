@@ -55,7 +55,7 @@ Observer.prototype.setup = function() {
                         if (value !== 0) {
                             value = 1 - value % 1;
                         }
-                        var z = parseInt(value * 100) / 100;
+                        var z = Math.ceil(value * 1000) / 1000;
                         scope.horizontalDirectionBuffer.add(z);
                         if (z > scope.horizontalDirectionBuffer.getAverage()) {
                             scope.horizontalDirection = scope.DIRECTION_TYPES.LEFT;

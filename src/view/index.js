@@ -1,11 +1,15 @@
 "use strict";
 
-var Segment = require('../HorizontalSegments/Segment');
+var Segment = require('../base/HorizontalSegments/Segment');
 var dataTypeDefinition = require('agency-pkg-base/dataTypeDefinition');
 
 module.exports = Segment.extend({
     modelConstructor: Segment.prototype.modelConstructor.extend(dataTypeDefinition, {
         session: {
+            indicator: {
+                type: 'object',
+                default: null
+            }
         }
     }),
 

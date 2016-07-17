@@ -4,7 +4,7 @@ var Controller = require('agency-pkg-base/Controller');
 var DomModel = require('agency-pkg-base/DomModel');
 var dataTypeDefinition = require('agency-pkg-base/dataTypeDefinition');
 var Bounds = require('agency-pkg-base/Bounds');
-var observer = require('../../observer');
+var observer = require('../../../observer');
 
 module.exports = Controller.extend({
     modelConstructor: DomModel.extend(dataTypeDefinition, {
@@ -25,6 +25,11 @@ module.exports = Controller.extend({
                 default: function() {
                     return new Bounds();
                 }
+            },
+            value: {
+                type: 'number',
+                required: true,
+                default: 0
             },
             offset: {
                 type: 'number',
@@ -52,8 +57,10 @@ function onObserver(observer) {
         progress -= 1 / this.model.width;
     }
     if (progress > -1 && progress < 1) {
+        this.model.value = (1 - Math.abs(progress));
         this.onActive(progress);
     } else {
+        this.model.value = 0;
         this.onInactive(progress);
     }
 }

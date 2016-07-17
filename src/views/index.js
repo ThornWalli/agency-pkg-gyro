@@ -1,6 +1,6 @@
 "use strict";
 
-var HorizontalSegments = require('../HorizontalSegments');
+var HorizontalSegments = require('../base/HorizontalSegments');
 var observer = require('../observer');
 
 module.exports = HorizontalSegments.extend({

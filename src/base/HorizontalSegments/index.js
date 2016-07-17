@@ -25,10 +25,11 @@ module.exports = Collection.extend({
     },
 
     reset: function() {
-    this.model.viewWidth = 1 / this.collection.length;
+        var $items = $(this.model.selector, this.el);
+        this.model.viewWidth = 1 / $items.length;
         this.collection.reset();
         var model;
-        $(this.model.selector, this.el).each(function(index, item) {
+        $items.each(function(index, item) {
             model = $(item).data('controller').model;
             model.index = index;
             model.width = this.model.viewWidth;

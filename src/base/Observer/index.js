@@ -58,9 +58,9 @@ Observer.prototype.setup = function() {
                         var z = Math.ceil(value * 1000) / 1000;
                         scope.horizontalDirectionBuffer.add(z);
                         if (z > scope.horizontalDirectionBuffer.getAverage()) {
-                            scope.horizontalDirection = scope.DIRECTION_TYPES.LEFT;
-                        } else if (!(z === scope.horizontalDirectionBuffer.getAverage() && scope.horizontalDirection === scope.DIRECTION_TYPES.LEFT)) {
                             scope.horizontalDirection = scope.DIRECTION_TYPES.RIGHT;
+                        } else if (!(z === scope.horizontalDirectionBuffer.getAverage() && scope.horizontalDirection === scope.DIRECTION_TYPES.RIGHT)) {
+                            scope.horizontalDirection = scope.DIRECTION_TYPES.LEFT;
                         }
 
                         scope.position.setX(0).setY(0).setZ(z);

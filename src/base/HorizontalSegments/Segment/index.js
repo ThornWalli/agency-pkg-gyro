@@ -49,6 +49,7 @@ module.exports = Controller.extend({
 
     onActive: function() {},
     onInactive: function() {}
+    
 });
 
 function onObserver(observer) {

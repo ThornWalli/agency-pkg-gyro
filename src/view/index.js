@@ -9,6 +9,11 @@ module.exports = Segment.extend({
             indicator: {
                 type: 'object',
                 default: null
+            },
+            offset: {
+                type: 'number',
+                required: true,
+                default: 1
             }
         }
     }),

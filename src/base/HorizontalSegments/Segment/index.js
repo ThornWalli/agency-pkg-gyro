@@ -30,11 +30,6 @@ module.exports = Controller.extend({
                 type: 'number',
                 required: true,
                 default: 0
-            },
-            offset: {
-                type: 'number',
-                required: true,
-                default: 0.50
             }
         }
     }),
@@ -49,7 +44,7 @@ module.exports = Controller.extend({
 
     onActive: function() {},
     onInactive: function() {}
-    
+
 });
 
 function onObserver(observer) {
@@ -57,6 +52,7 @@ function onObserver(observer) {
     if (this.model.index === 0 && observer.position.z > 1 - this.model.width) {
         progress -= 1 / this.model.width;
     }
+
     if (progress > -1 && progress < 1) {
         this.model.value = (1 - Math.abs(progress));
         this.onActive(progress);

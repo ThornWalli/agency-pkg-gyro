@@ -13,7 +13,7 @@ module.exports = Segment.extend({
             offset: {
                 type: 'number',
                 required: true,
-                default: 1
+                default: 0.5
             }
         }
     }),

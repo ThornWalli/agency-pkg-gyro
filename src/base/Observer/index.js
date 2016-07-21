@@ -24,21 +24,23 @@ Observer.prototype.DIRECTION_TYPES = new Enum(['NONE', 'LEFT', 'RIGHT']);
 Observer.prototype.position = null;
 Observer.prototype.horizontalDirectionBuffer = null;
 Observer.prototype.horizontalDirection = null;
+Observer.prototype.locked = false;
 Observer.prototype.ready = false;
 Observer.prototype.callbacks = [];
 Observer.prototype.offset = null;
 Observer.prototype.setup = function() {
     if (!this.ready) {
-            global.InitializeWebVRPolyfill();
-            if (global.navigator.getVRDisplays) {
-                global.navigator.getVRDisplays().then(function(displays) {
-                    if (!displays.length) {
-                        //   VRSamplesUtil.addInfo("WebVR supported, but no VRDisplays found.");
-                        return;
-                    }
-                    var scope = this;
+        global.InitializeWebVRPolyfill();
+        if (global.navigator.getVRDisplays) {
+            global.navigator.getVRDisplays().then(function(displays) {
+                if (!displays.length) {
+                    //   VRSamplesUtil.addInfo("WebVR supported, but no VRDisplays found.");
+                    return;
+                }
+                var scope = this;
 
-                    var trigger_ = function() {
+                var trigger_ = function() {
+                    if (!scope.locked) {
                         var orientation = this.getPose().orientation;
                         z = orientation[1];
                         var value = z;
@@ -75,12 +77,13 @@ Observer.prototype.setup = function() {
                         scope.position.setZ((1 + scope.position.z) % 1);
 
                         trigger(scope);
-                    };
-                    for (var i = 0; i < displays.length; ++i) {
-                        global.animationFrame.addLoopListener('agency-pkg-gyro/Observer', trigger_.bind(displays[i]));
                     }
-                }.bind(this));
-            }
+                };
+                for (var i = 0; i < displays.length; ++i) {
+                    global.animationFrame.addLoopListener('agency-pkg-gyro/Observer', trigger_.bind(displays[i]));
+                }
+            }.bind(this));
+        }
 
         this.ready = true;
     }

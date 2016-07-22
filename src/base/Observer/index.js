@@ -14,11 +14,14 @@ var Observer = function() {
     this.position = new Vector(0, 0, 0);
     this.offset = new Vector(0, 0, 0);
     this.horizontalDirectionBuffer = new Buffer(4);
-    if (global.DeviceMotionEvent !== undefined && global.DeviceOrientationEvent !== undefined) {
-        document.querySelector('html').classList.add('js-has-gyro');
-    } else {
-        document.querySelector('html').classList.add('js-has-not-gyro');
-    }
+    gyroCheck(function (hasGyro) {
+        this.hasGyro = hasGyro;
+        if (hasGyro) {
+            document.querySelector('html').classList.add('js-has-gyro');
+        } else {
+            document.querySelector('html').classList.add('js-has-not-gyro');
+        }
+    }.bind(this));
 };
 Observer.prototype.DIRECTION_TYPES = new Enum(['NONE', 'LEFT', 'RIGHT']);
 Observer.prototype.position = null;
@@ -26,6 +29,7 @@ Observer.prototype.horizontalDirectionBuffer = null;
 Observer.prototype.horizontalDirection = null;
 Observer.prototype.locked = false;
 Observer.prototype.ready = false;
+Observer.prototype.hasGyro = false;
 Observer.prototype.callbacks = [];
 Observer.prototype.offset = null;
 Observer.prototype.setup = function() {
@@ -102,6 +106,17 @@ function trigger(scope) {
     scope.callbacks.forEach(function(callback) {
         callback.cb(scope);
     });
+}
+
+function gyroCheck(callback) {
+    function handler(event) {
+        var hasGyro = typeof event.alpha === 'number' &&
+            typeof event.beta === 'number' &&
+            typeof event.gamma === 'number';
+        window.removeEventListener('deviceorientation', handler, false);
+        callback(hasGyro);
+    }
+    window.addEventListener('deviceorientation', handler, false);
 }
 
 module.exports = Observer;

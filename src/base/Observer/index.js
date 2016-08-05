@@ -46,35 +46,17 @@ Observer.prototype.setup = function() {
                 var trigger_ = function() {
                     if (!scope.locked) {
                         var orientation = this.getPose().orientation;
-                        z = orientation[1];
-                        var value = z;
-
-                        value += 1;
-                        value /= 2;
-                        value -= 0.5;
-                        if (orientation[3] < 0) {
-                            value = 1 - value;
-                        }
-                        if (orientation[3] > 0 && orientation[1] < 0 && value < 0) {
-                            value = 1 + value;
-                        }
-                        if (value !== 0) {
-                            value = 1 - value % 1;
-                        }
-                        var z = Math.ceil(value * 1000) / 1000;
-                        scope.horizontalDirectionBuffer.add(z);
+                        var z = orientation[1];
                         if (z > scope.horizontalDirectionBuffer.getAverage()) {
                             scope.horizontalDirection = scope.DIRECTION_TYPES.RIGHT;
                         } else if (!(z === scope.horizontalDirectionBuffer.getAverage() && scope.horizontalDirection === scope.DIRECTION_TYPES.RIGHT)) {
                             scope.horizontalDirection = scope.DIRECTION_TYPES.LEFT;
                         }
-
                         scope.position.setX(0).setY(0).setZ(z);
                         if (scope.resetOffset) {
                             scope.offset.reset(scope.position);
                             scope.resetOffset = false;
                         }
-
                         scope.position.subtractLocal(scope.offset);
                         scope.position.setX((1 + scope.position.x) % 1);
                         scope.position.setY((1 + scope.position.y) % 1);

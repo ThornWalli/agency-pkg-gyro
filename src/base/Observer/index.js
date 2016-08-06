@@ -1,6 +1,7 @@
 "use strict";
 
 global.WebVRConfig = {
+    YAW_ONLY: true,
     DEFER_INITIALIZATION: true
 };
 require('webvr-polyfill/src/main');
@@ -14,7 +15,7 @@ var Observer = function() {
     this.position = new Vector(0, 0, 0);
     this.offset = new Vector(0, 0, 0);
     this.horizontalDirectionBuffer = new Buffer(4);
-    gyroCheck(function (hasGyro) {
+    gyroCheck(function(hasGyro) {
         this.hasGyro = hasGyro;
         if (hasGyro) {
             document.querySelector('html').classList.add('js-has-gyro');
@@ -23,6 +24,7 @@ var Observer = function() {
         }
     }.bind(this));
 };
+
 Observer.prototype.DIRECTION_TYPES = new Enum(['NONE', 'LEFT', 'RIGHT']);
 Observer.prototype.position = null;
 Observer.prototype.horizontalDirectionBuffer = null;
@@ -32,6 +34,36 @@ Observer.prototype.ready = false;
 Observer.prototype.hasGyro = false;
 Observer.prototype.callbacks = [];
 Observer.prototype.offset = null;
+Observer.prototype.quatToEuler = function(q1) {
+    var pitchYawRoll = {};
+    var sqw = q1.w * q1.w;
+    var sqx = q1.x * q1.x;
+    var sqy = q1.y * q1.y;
+    var sqz = q1.z * q1.z;
+    var unit = sqx + sqy + sqz + sqw;
+    var test = q1.x * q1.y + q1.z * q1.w;
+    var heading, attitude, bank;
+    if (test > 0.499 * unit) {
+        heading = 2 * Math.atan2(q1.x, q1.w);
+        attitude = Math.PI / 2;
+        bank = 0;
+        return;
+    }
+    if (test < -0.499 * unit) {
+        heading = -2 * Math.atan2(q1.x, q1.w);
+        attitude = -Math.PI / 2;
+        bank = 0;
+        return;
+    } else {
+        heading = Math.atan2(2 * q1.y * q1.w - 2 * q1.x * q1.z, sqx - sqy - sqz + sqw);
+        attitude = Math.asin(2 * test / unit);
+        bank = Math.atan2(2 * q1.x * q1.w - 2 * q1.y * q1.z, -sqx + sqy - sqz + sqw);
+    }
+    pitchYawRoll.z = Math.floor(attitude * 1000) / 1000;
+    pitchYawRoll.y = Math.floor(heading * 1000) / 1000;
+    pitchYawRoll.x = Math.floor(bank * 1000) / 1000;
+    return pitchYawRoll;
+};
 Observer.prototype.setup = function() {
     if (!this.ready) {
         global.InitializeWebVRPolyfill();
@@ -47,6 +79,25 @@ Observer.prototype.setup = function() {
                     if (!scope.locked) {
                         var orientation = this.getPose().orientation;
                         var z = orientation[1];
+
+                        var q = {
+                            x: orientation[0],
+                            y: orientation[1],
+                            z: orientation[2],
+                            w: orientation[3]
+                        };
+
+                        if (!this.test) {
+                            this.test = true;
+                            console.log(this);
+                        }
+
+                        z = scope.quatToEuler(q).y;
+                        if (z < 0) {
+                            z = 2 * Math.PI + z;
+                        }
+                        z = 1 - (z / Math.PI) / 2;
+
                         if (z > scope.horizontalDirectionBuffer.getAverage()) {
                             scope.horizontalDirection = scope.DIRECTION_TYPES.RIGHT;
                         } else if (!(z === scope.horizontalDirectionBuffer.getAverage() && scope.horizontalDirection === scope.DIRECTION_TYPES.RIGHT)) {
@@ -60,7 +111,8 @@ Observer.prototype.setup = function() {
                         scope.position.subtractLocal(scope.offset);
                         scope.position.setX((1 + scope.position.x) % 1);
                         scope.position.setY((1 + scope.position.y) % 1);
-                        scope.position.setZ((1 + scope.position.z) % 1);
+                        // scope.position.setZ((1 + scope.position.z) % 1);
+                        scope.position.setZ(z);
 
                         trigger(scope);
                     }

@@ -97,7 +97,7 @@ Observer.prototype.setup = function() {
                             z = 2 * Math.PI + z;
                         }
                         z = 1 - (z / Math.PI) / 2;
-
+                        scope.horizontalDirectionBuffer.add(z);
                         if (z > scope.horizontalDirectionBuffer.getAverage()) {
                             scope.horizontalDirection = scope.DIRECTION_TYPES.RIGHT;
                         } else if (!(z === scope.horizontalDirectionBuffer.getAverage() && scope.horizontalDirection === scope.DIRECTION_TYPES.RIGHT)) {

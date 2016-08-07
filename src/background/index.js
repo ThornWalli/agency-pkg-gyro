@@ -32,14 +32,14 @@ module.exports = Controller.extend({
             refreshSize(scope);
         }, function() {
             generateBackground(scope, scope.targetModel.viewWidth);
-            scope.backgroundEl.style.background = 'url("' + scope.image + '") ' + observer.position.z * scope.width + 'px 0';
+            scope.backgroundEl.style.background = 'url("' + scope.image + '") ' + observer.position.y * scope.width + 'px 0';
         }));
 
     }
 });
 
 function onObserver(observer) {
-    this.backgroundEl.style.background = 'url("' + this.image + '") ' + observer.position.z * this.width + 'px 0';
+    this.backgroundEl.style.background = 'url("' + this.image + '") ' + observer.position.y * this.width + 'px 0';
 }
 
 function refreshSize(scope) {

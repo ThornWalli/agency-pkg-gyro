@@ -78,8 +78,6 @@ Observer.prototype.setup = function() {
                 var trigger_ = function() {
                     if (!scope.locked) {
                         var orientation = this.getPose().orientation;
-                        var z = orientation[1];
-
                         var q = {
                             x: orientation[0],
                             y: orientation[1],
@@ -87,23 +85,20 @@ Observer.prototype.setup = function() {
                             w: orientation[3]
                         };
 
-                        if (!this.test) {
-                            this.test = true;
-                            console.log(this);
+                        // Y
+                        var y = scope.quatToEuler(q).y;
+                        if (y < 0) {
+                            y = 2 * Math.PI + y;
                         }
-
-                        z = scope.quatToEuler(q).y;
-                        if (z < 0) {
-                            z = 2 * Math.PI + z;
-                        }
-                        z = 1 - (z / Math.PI) / 2;
-                        scope.horizontalDirectionBuffer.add(z);
-                        if (z > scope.horizontalDirectionBuffer.getAverage()) {
+                        y = 1 - (y / Math.PI) / 2;
+                        scope.horizontalDirectionBuffer.add(y);
+                        if (y > scope.horizontalDirectionBuffer.getAverage()) {
                             scope.horizontalDirection = scope.DIRECTION_TYPES.RIGHT;
-                        } else if (!(z === scope.horizontalDirectionBuffer.getAverage() && scope.horizontalDirection === scope.DIRECTION_TYPES.RIGHT)) {
+                        } else if (!(y === scope.horizontalDirectionBuffer.getAverage() && scope.horizontalDirection === scope.DIRECTION_TYPES.RIGHT)) {
                             scope.horizontalDirection = scope.DIRECTION_TYPES.LEFT;
                         }
-                        scope.position.setX(0).setY(0).setZ(z);
+
+                        scope.position.setX(0).setY(y).setZ(0);
                         if (scope.resetOffset) {
                             scope.offset.reset(scope.position);
                             scope.resetOffset = false;
@@ -111,9 +106,7 @@ Observer.prototype.setup = function() {
                         scope.position.subtractLocal(scope.offset);
                         scope.position.setX((1 + scope.position.x) % 1);
                         scope.position.setY((1 + scope.position.y) % 1);
-                        // scope.position.setZ((1 + scope.position.z) % 1);
-                        scope.position.setZ(z);
-
+                        scope.position.setZ((1 + scope.position.z) % 1);
                         trigger(scope);
                     }
                 };

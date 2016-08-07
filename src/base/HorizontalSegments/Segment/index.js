@@ -48,11 +48,10 @@ module.exports = Controller.extend({
 });
 
 function onObserver(observer) {
-    var progress = (((observer.position.z - this.model.index * this.model.width) / this.model.width));
-    if (this.model.index === 0 && observer.position.z > 1 - this.model.width) {
+    var progress = (((observer.position.y - this.model.index * this.model.width) / this.model.width));
+    if (this.model.index === 0 && observer.position.y > 1 - this.model.width) {
         progress -= 1 / this.model.width;
     }
-
     if (progress > -1 && progress < 1) {
         this.model.value = (1 - Math.abs(progress));
         this.onActive(progress);

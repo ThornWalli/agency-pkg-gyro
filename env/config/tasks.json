@@ -70,18 +70,6 @@
       }
     },
     "subtasks": [{
-      "name": "pages",
-      "layout": "agency-pkg-layouts/default",
-      "renderingOnce" : false,
-      "files": {
-        "src": ["./test/tmpl/**/*.hbs", "!./test/tmpl/partials/**/*.hbs"],
-        "dest": "<%= destination %>/"
-      },
-      "data": {
-        "cwd": "./test/data/",
-        "src": ["./**/*.{json,yaml}", "!./globals/**/*.{json,yaml}"]
-      }
-    }, {
       "name": "docs",
       "layout": "agency-pkg-layouts/default",
       "renderingOnce" : false,
@@ -95,13 +83,22 @@
         "src": ["./**/*.{json,yaml}", "!./globals/**/*.{json,yaml}"]
       }
     }, {
-      "name": "docs-partials",
+      "name": "partial-docs",
+      "layout": "agency-pkg-layouts/default",
+      "renderingOnce" : false,
+      "files": {
+        "src": ["./test/tmpl/partials/**/*.hbs"],
+        "dest": "<%= destination %>/docs/partials/",
+        "base": "./test/tmpl/partials/"
+      }
+    }, {
+      "name": "src-docs",
       "layout": "agency-pkg-layouts/documentation",
       "renderingOnce" : false,
       "files": {
-        "src": ["./src/**/*.hbs", "./test/tmpl/partials/**/*.hbs", "!./test/tmpl/partials/common/**/*.hbs", "!./test/tmpl/partials/layouts/**/*.hbs"],
-        "dest": "<%= destination %>/docs/",
-        "base": "."
+        "src": ["./src/**/*.hbs"],
+        "dest": "<%= destination %>/docs/src",
+        "base": "./src/"
       }
     }, {
       "name": "docs-packages",

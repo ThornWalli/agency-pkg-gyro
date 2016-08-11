@@ -70,9 +70,21 @@
       }
     },
     "subtasks": [{
+      "name": "pages",
+      "layout": "agency-pkg-layouts/default",
+      "renderingOnce": false,
+      "files": {
+        "src": ["./test/tmpl/**/*.hbs", "!./test/tmpl/partials/**/*.hbs"],
+        "dest": "<%= destination %>/"
+      },
+      "data": {
+        "cwd": "./test/data/",
+        "src": ["./**/*.{json,yaml}", "!./globals/**/*.{json,yaml}"]
+      }
+    }, {
       "name": "docs",
       "layout": "agency-pkg-layouts/default",
-      "renderingOnce" : false,
+      "renderingOnce": false,
       "files": {
         "src": ["./node_modules/agency-pkg-docs/docs-pkg/*.hbs"],
         "dest": "<%= destination %>/docs/",
@@ -85,7 +97,7 @@
     }, {
       "name": "partial-docs",
       "layout": "agency-pkg-layouts/default",
-      "renderingOnce" : false,
+      "renderingOnce": false,
       "files": {
         "src": ["./test/tmpl/partials/**/*.hbs"],
         "dest": "<%= destination %>/docs/partials/",
@@ -94,7 +106,7 @@
     }, {
       "name": "src-docs",
       "layout": "agency-pkg-layouts/documentation",
-      "renderingOnce" : false,
+      "renderingOnce": false,
       "files": {
         "src": ["./src/**/*.hbs"],
         "dest": "<%= destination %>/docs/src",
@@ -103,7 +115,7 @@
     }, {
       "name": "docs-packages",
       "layout": "agency-pkg-layouts/documentation",
-      "renderingOnce" : true,
+      "renderingOnce": true,
       "files": {
         "src": [],
         "dest": "<%= destination %>/docs/packages",

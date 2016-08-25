@@ -6,7 +6,7 @@ global.WebVRConfig = {
 };
 require('webvr-polyfill/src/main');
 var Vector = require('agency-pkg-base/Vector');
-var Buffer = require('../Buffer');
+var Buffer = require('agency-pkg-base/Buffer');
 var Enum = require('enum');
 
 var Observer = function() {

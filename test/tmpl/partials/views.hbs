@@ -1,0 +1,25 @@
+---
+reset:
+  class: 'reset'
+  title: 'Reset'
+---
+
+<div class="pkg controller" data-pkg="agency-pkg-gyro/views" data-controller="./partials/Views">
+
+    {{{mixin "background" target="[data-pkg='agency-pkg-gyro/views']"}}}
+
+    {{{mixin "agency-pkg-elements/link" reset}}}
+
+  <div class="list">
+
+    {{#block "views"}}
+
+            {{{mixin "views/view" index="0"}}}
+            {{{mixin "views/view" index="1"}}}
+            {{{mixin "views/view" index="2"}}}
+
+    {{/block}}
+
+  </div>
+
+</div>

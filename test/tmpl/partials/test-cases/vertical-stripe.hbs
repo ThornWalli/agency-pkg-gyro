@@ -1,0 +1,10 @@
+---
+axis: "X"
+target: "[data-partial='test-cases/vertical-stripe']"
+---
+{{#mixin "test-cases/background" this}}
+  {{#content "attributes"}} data-partial="test-cases/vertical-stripe" data-controller="./partials/testCases/Background"{{/content}}
+  {{#content background}}
+    {{{mixin "test-cases/vertical-background" axis="X" target="[data-partial='test-cases/vertical-stripe']"}}}
+  {{/content}}
+{{/mixin}}

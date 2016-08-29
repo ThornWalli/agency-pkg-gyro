@@ -1,8 +1,9 @@
 ---
-
+debug: false
 ---
-<div class="pkg controller" data-pkg="agency-pkg-gyro/background" data-controller="./partials/Background" data-target="{{{target}}}">
+<div class="partial controller" {{#block "attributes"}} data-partial="background" data-controller="./partials/Background"{{/block}}{{#if target}} data-target="{{{target}}}"{{/if}}{{#if axis}} data-axis="{{{axis}}}"{{/if}}{{#if debug}} data-debug="{{{debug}}}"{{/if}}>
 
+  {{#if debug}}<img class="debug" data-hook="debug" />{{/if}}
   <span class="background" data-hook="background"></span>
 
 </div>

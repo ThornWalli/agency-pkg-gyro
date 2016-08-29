@@ -1,0 +1,13 @@
+.partial[data-partial="test-cases/vertical-stripe"] {
+  @extend .partial[data-partial="background"];
+  display: block;
+  position: absolute;
+  top: 10%;
+  bottom: 10%;
+  left: 10%;
+  width: 100px;
+  height: auto;
+  >* {
+    background-repeat: repeat-y;
+  }
+}

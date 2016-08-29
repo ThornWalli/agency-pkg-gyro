@@ -1,24 +1,28 @@
-.pkg[data-pkg="agency-pkg-gyro/background"] {
+.partial[data-partial="background"] {
   position: absolute;
   top: 0;
   right: 0;
   width: 100%;
   height: 100%;
-
   display: block;
-
->* {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-canvas {
-  position: fixed;
-  z-index: 1000;
-  top: 0;
-  left: 0;
-  pointer-events: none
-}
-
+  >span {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  canvas {
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    pointer-events: none
+  }
+  >.debug {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 10vw;
+    height: auto;
+    background: magenta;
+  }
 }

@@ -1,0 +1,88 @@
+.partial[data-partial="test-cases/pendulum"] {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  span {
+    position: relative;
+    display: block;
+  }
+  >span {
+
+    width: 128px;
+    height: 128px;
+    &:before {
+      position: relative;
+      z-index: 100;
+      content: "";
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 50%;
+      background: #000;
+      box-sizing: border-box;
+      border: solid #00ff00 4px;
+    }
+    transform-origin: center center;
+    /*animation-name: animate;
+    animation-duration: 3s;
+    animation-iteration-count: infinite;*/
+
+    >span {
+      position: absolute;
+      left: 50%;
+      margin-left: -8px;
+      bottom: -95px;
+      width: 16px;
+      height: 100px;
+      background: #000;
+      box-sizing: border-box;
+      border: solid #00ff00 4px;
+      >span {
+        position: absolute;
+        left: 50%;
+        margin-left: -32px;
+        bottom: -59px;
+        width: 64px;
+        height: 64px;
+        background: silver;
+        border-radius: 50%;
+        &:before {
+          position: relative;
+          z-index: 100;
+          content: "";
+          width: 100%;
+          height: 100%;
+          display: block;
+          background: #000;
+          box-sizing: border-box;
+          border: solid #00ff00 4px;
+          border-radius: 50%;
+        }
+        z-index: 99;
+      }
+    }
+  }
+}
+@keyframes animate {
+  0% {
+    transform: rotateZ(-45deg);
+    animation-timing-function: ease-in;
+  }
+  25% {
+    transform: rotateZ(0deg);
+    animation-timing-function: ease-out;
+  }
+  50% {
+    transform: rotateZ(45deg);
+    animation-timing-function: ease-in;
+  }
+  75% {
+    transform: rotateZ(0deg);
+    animation-timing-function: ease-out;
+  }
+  100% {
+    transform: rotateZ(-45deg);
+    animation-timing-function: ease-in;
+  }
+}

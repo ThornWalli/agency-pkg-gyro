@@ -1,0 +1,13 @@
+---
+
+---
+{{#mixin "horizontal-segments/indicator" this}}
+  {{#content "attributes"}}
+    class="partial controller"
+    data-partial="horizontal-segments/indicator/bar-center"
+    data-controller="./partials/horizontalSegments/indicator/BarCenter"
+  {{/content}}
+  {{#content "content"}}
+    <span class="bar center" data-hook="bar"></span>
+  {{/content}}
+{{/mixin}}

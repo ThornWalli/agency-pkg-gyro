@@ -1,6 +1,6 @@
 "use strict";
 
-var Segment = require('../../../../src/base/HorizontalSegments/Segment');
+var Segment = require('../../../../../src/base/HorizontalSegments/Segment');
 var dataTypeDefinition = require('agency-pkg-base/dataTypeDefinition');
 
 module.exports = Segment.extend({

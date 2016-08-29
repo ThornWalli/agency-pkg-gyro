@@ -1,0 +1,12 @@
+---
+index: -1
+---
+<div class="partial controller agency-pkg-gyro-view-{{index}}" data-partial="horizontal-segments/views/view" data-controller="./partials/horizontalSegments/views/View" data-index="{{index}}">
+
+  {{{mixin "horizontal-segments/indicator/bar-center" target=(replace ".agency-pkg-gyro-view-index" "index" index)}}}
+
+  <span class="bar left" data-hook="barLeft"></span>
+  <span class="bar right" data-hook="barRight"></span>
+  <span class="info" data-hook="info"></span>
+
+</div>

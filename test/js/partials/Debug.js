@@ -16,6 +16,5 @@ module.exports = Controller.extend({
 });
 
 function onObserver(observer) {
-    this.directionEl.innerHTML = [observer.horizontalDirection, (Math.ceil(observer.position.z * 100) / 100)].join('<br />');
-        // this.valueEl.innerHTML =  observer.position.z,observer.directionBuffer.getAverage();
+    this.directionEl.innerHTML = [observer.horizontalDirection, (Math.ceil(observer.position.y * 100) / 100),observer.verticalDirection,(Math.ceil(observer.position.x * 100) / 100),(Math.ceil(observer.position.z * 100) / 100)].join('<br />');
 }

@@ -1,20 +1,63 @@
 "use strict";
 
 global.WebVRConfig = {
-    YAW_ONLY: true,
-    DEFER_INITIALIZATION: true
+    // Flag to disabled the UI in VR Mode.
+    CARDBOARD_UI_DISABLED: false, // Default: false
+
+    // Forces availability of VR mode, even for non-mobile devices.
+    FORCE_ENABLE_VR: false, // Default: false.
+
+    // Complementary filter coefficient. 0 for accelerometer, 1 for gyro.
+    K_FILTER: 0.98, // Default: 0.98.
+
+    // Flag to disable the instructions to rotate your device.
+    ROTATE_INSTRUCTIONS_DISABLED: false, // Default: false.
+
+    // How far into the future to predict during fast motion (in seconds).
+    PREDICTION_TIME_S: 0.040, // Default: 0.040.
+
+    // Flag to disable touch panner. In case you have your own touch controls.
+    TOUCH_PANNER_DISABLED: true, // Default: false.
+
+    // Enable yaw panning only, disabling roll and pitch. This can be useful
+    // for panoramas with nothing interesting above or below.
+    YAW_ONLY: false, // Default: false.
+
+    // To disable keyboard and mouse controls, if you want to use your own
+    // implementation.
+    MOUSE_KEYBOARD_CONTROLS_DISABLED: false, // Default: false.
+
+    // Prevent the polyfill from initializing immediately. Requires the app
+    // to call InitializeWebVRPolyfill() before it can be used.
+    DEFER_INITIALIZATION: true, // Default: false.
+
+    // Enable the deprecated version of the API (navigator.getVRDevices).
+    ENABLE_DEPRECATED_API: true, // Default: false.
+
+    // Scales the recommended buffer size reported by WebVR, which can improve
+    // performance.
+    BUFFER_SCALE: 0.5, // Default: 0.5.
+
+    // Allow VRDisplay.submitFrame to change gl bindings, which is more
+    // efficient if the application code will re-bind its resources on the
+    // next frame anyway. This has been seen to cause rendering glitches with
+    // THREE.js.
+    // Dirty bindings include: gl.FRAMEBUFFER_BINDING, gl.CURRENT_PROGRAM,
+    // gl.ARRAY_BUFFER_BINDING, gl.ELEMENT_ARRAY_BUFFER_BINDING,
+    // and gl.TEXTURE_BINDING_2D for texture unit 0.
+    DIRTY_SUBMIT_FRAME_BINDINGS: true // Default: false.
 };
 require('webvr-polyfill/src/main');
 var Vector = require('agency-pkg-base/Vector');
 var Buffer = require('agency-pkg-base/Buffer');
 var Enum = require('enum');
 
-var Observer = function() {
-
+var Observer = function(withSetup) {
     this.resetOffset = false;
     this.position = new Vector(0, 0, 0);
     this.offset = new Vector(0, 0, 0);
     this.horizontalDirectionBuffer = new Buffer(4);
+    this.verticalDirectionBuffer = new Buffer(4);
     gyroCheck(function(hasGyro) {
         this.hasGyro = hasGyro;
         if (hasGyro) {
@@ -23,17 +66,26 @@ var Observer = function() {
             document.querySelector('html').classList.add('js-has-not-gyro');
         }
     }.bind(this));
+    if (withSetup) {
+        this.setup();
+    }
 };
 
-Observer.prototype.DIRECTION_TYPES = new Enum(['NONE', 'LEFT', 'RIGHT']);
+Observer.prototype.DIRECTION_TYPES = new Enum(['NONE', 'LEFT', 'RIGHT', 'TOP', 'BOTTOM']);
 Observer.prototype.position = null;
 Observer.prototype.horizontalDirectionBuffer = null;
 Observer.prototype.horizontalDirection = null;
+Observer.prototype.verticalDirectionBuffer = null;
+Observer.prototype.verticalDirection = null;
 Observer.prototype.locked = false;
 Observer.prototype.ready = false;
 Observer.prototype.hasGyro = false;
 Observer.prototype.callbacks = [];
 Observer.prototype.offset = null;
+Observer.prototype.lastPosition = {
+    x: 0,
+    y: 0
+};
 Observer.prototype.quatToEuler = function(q1) {
     var pitchYawRoll = {};
     var sqw = q1.w * q1.w;
@@ -78,35 +130,59 @@ Observer.prototype.setup = function() {
                 var trigger_ = function() {
                     if (!scope.locked) {
                         var orientation = this.getPose().orientation;
-                        var q = {
+
+                        var euler = scope.quatToEuler({
                             x: orientation[0],
                             y: orientation[1],
                             z: orientation[2],
                             w: orientation[3]
-                        };
+                        });
+
+                        // X
+                        var x = euler.x;
+                        x += Math.PI / 2;
+                        x = (x / Math.PI);
 
                         // Y
-                        var y = scope.quatToEuler(q).y;
+                        var y = euler.y;
                         if (y < 0) {
                             y = 2 * Math.PI + y;
                         }
                         y = 1 - (y / Math.PI) / 2;
-                        scope.horizontalDirectionBuffer.add(y);
-                        if (y > scope.horizontalDirectionBuffer.getAverage()) {
-                            scope.horizontalDirection = scope.DIRECTION_TYPES.RIGHT;
-                        } else if (!(y === scope.horizontalDirectionBuffer.getAverage() && scope.horizontalDirection === scope.DIRECTION_TYPES.RIGHT)) {
-                            scope.horizontalDirection = scope.DIRECTION_TYPES.LEFT;
-                        }
 
-                        scope.position.setX(0).setY(y).setZ(0);
+                        // Z
+                        var z = euler.z;
+                        z += Math.PI / 2;
+                        z = (z / Math.PI);
+
+                        scope.position.setX(x).setY(y).setZ(z);
                         if (scope.resetOffset) {
                             scope.offset.reset(scope.position);
                             scope.resetOffset = false;
                         }
                         scope.position.subtractLocal(scope.offset);
-                        scope.position.setX((1 + scope.position.x) % 1);
+
+                        scope.position.setX(scope.position.x % 1);
                         scope.position.setY((1 + scope.position.y) % 1);
-                        scope.position.setZ((1 + scope.position.z) % 1);
+                        scope.position.setZ((scope.position.z) % 1);
+
+                        scope.verticalDirectionBuffer.add(scope.position.x);
+                        if (scope.position.x > scope.verticalDirectionBuffer.getAverage()) {
+                            scope.verticalDirection = scope.DIRECTION_TYPES.BOTTOM;
+                        } else if (scope.position.x < scope.verticalDirectionBuffer.getAverage()) {
+                            scope.verticalDirection = scope.DIRECTION_TYPES.TOP;
+                        } else {
+                            scope.verticalDirection = scope.DIRECTION_TYPES.NONE;
+                        }
+                        scope.horizontalDirectionBuffer.add(scope.position.y);
+                        if (scope.position.y > scope.horizontalDirectionBuffer.getAverage()) {
+                            scope.horizontalDirection = scope.DIRECTION_TYPES.RIGHT;
+                        } else if (scope.position.y < scope.horizontalDirectionBuffer.getAverage()) {
+                            scope.horizontalDirection = scope.DIRECTION_TYPES.LEFT;
+                        } else {
+                            scope.horizontalDirection = scope.DIRECTION_TYPES.NONE;
+                        }
+
                         trigger(scope);
                     }
                 };
@@ -130,9 +206,13 @@ Observer.prototype.register = function(name, callback) {
 };
 
 function trigger(scope) {
-    scope.callbacks.forEach(function(callback) {
-        callback.cb(scope);
-    });
+    if (scope.lastPosition.x !== scope.position.x || scope.lastPosition.y !== scope.position.y) {
+        scope.lastPosition.x = scope.position.x;
+        scope.lastPosition.y = scope.position.y;
+        scope.callbacks.forEach(function(callback) {
+            callback.cb(scope);
+        });
+    }
 }
 
 function gyroCheck(callback) {

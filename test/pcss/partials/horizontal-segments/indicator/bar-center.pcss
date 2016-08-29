@@ -1,0 +1,11 @@
+$border_radius: calc(4 / 16)em;
+
+.partial[data-partial="horizontal-segments/indicator/bar-center"] {
+  @extend .partial[data-partial="horizontal-segments/indicator"];
+  .bar {
+    @extend .partial[data-partial="horizontal-segments/indicator"] .bar;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: $border_radius;
+  }
+}

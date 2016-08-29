@@ -1,0 +1,25 @@
+---
+reset:
+  class: 'reset'
+  title: 'Reset'
+---
+
+<div class="partial controller" data-partial="horizontal-segments/views" data-controller="./partials/horizontalSegments/Views">
+
+    {{{mixin "horizontal-segments/background" target="[data-partial='horizontal-segments/views']"}}}
+
+    {{{mixin "agency-pkg-elements/link" reset}}}
+
+  <div class="list">
+
+    {{#block "views"}}
+
+      {{{mixin "horizontal-segments/views/view" index="0"}}}
+      {{{mixin "horizontal-segments/views/view" index="1"}}}
+      {{{mixin "horizontal-segments/views/view" index="2"}}}
+
+    {{/block}}
+
+  </div>
+
+</div>

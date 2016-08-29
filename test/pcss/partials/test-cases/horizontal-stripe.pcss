@@ -1,0 +1,13 @@
+.partial[data-partial="test-cases/horizontal-stripe"] {
+  @extend .partial[data-partial="background"];
+  display: block;
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  right: 10%;
+  width: auto;
+  height: 100px;
+  >* {
+    background-repeat: repeat-x;
+  }
+}

@@ -48,7 +48,7 @@ module.exports = Background.extend({
         var canvas = this.canvas;
         var context = canvas.getContext('2d');
 
-        var centerX = canvas.width / 2;
+        // var centerX = canvas.width / 2;
         var centerY = canvas.height / 2;
         var i;
         var strokeStyle = '#00ff00';

@@ -49,6 +49,7 @@ global.WebVRConfig = {
 };
 require('webvr-polyfill/src/main');
 var Vector = require('agency-pkg-base/Vector');
+var VectorBuffer = require('agency-pkg-base/VectorBuffer');
 var Buffer = require('agency-pkg-base/Buffer');
 var Enum = require('enum');
 
@@ -56,7 +57,7 @@ var Observer = function(withSetup) {
     this.resetOffset = false;
     this.position = new Vector(0, 0, 0);
     this.offset = new Vector(0, 0, 0);
-    this.horizontalDirectionBuffer = new Buffer(4);
+    this.horizontalDirectionBuffer = new VectorBuffer(4);
     this.verticalDirectionBuffer = new Buffer(4);
     gyroCheck(function(hasGyro) {
         this.hasGyro = hasGyro;
@@ -71,6 +72,7 @@ var Observer = function(withSetup) {
     }
 };
 
+Observer.prototype.AXIS = new Enum(['X', 'Y', 'Z', 'XY', 'XYZ']);
 Observer.prototype.DIRECTION_TYPES = new Enum(['NONE', 'LEFT', 'RIGHT', 'TOP', 'BOTTOM']);
 Observer.prototype.position = null;
 Observer.prototype.horizontalDirectionBuffer = null;
@@ -86,7 +88,149 @@ Observer.prototype.lastPosition = {
     x: 0,
     y: 0
 };
-Observer.prototype.quatToEuler = function(q1) {
+
+var directionVector = new Vector();
+var directionVector2 = new Vector();
+var lastYVal = null;
+
+
+Observer.prototype.setup = function() {
+    global.test = this;
+
+    if (!this.ready) {
+        global.InitializeWebVRPolyfill();
+        if (global.navigator.getVRDisplays) {
+            global.navigator.getVRDisplays().then(function(displays) {
+                if (!displays.length) {
+                    //   VRSamplesUtil.addInfo("WebVR supported, but no VRDisplays found.");
+                    return;
+                }
+                var scope = this;
+
+                var trigger_ = function() {
+                    if (!scope.locked) {
+                        var orientation = this.getPose().orientation;
+
+                        var euler = quatToEuler({
+                            x: orientation[0],
+                            y: orientation[1],
+                            z: orientation[2],
+                            w: orientation[3]
+                        });
+
+
+                        // X
+                        var x = euler.x;
+                        x += Math.PI / 2;
+                        x = (x / Math.PI);
+
+                        // Y
+                        var y = euler.y;
+                        if (y < 0) {
+                            y = 2 * Math.PI + y;
+                        }
+                        y = 1 - (y / Math.PI) / 2;
+
+                        // Z
+                        var z = euler.z;
+                        z += Math.PI / 2;
+                        z = (z / Math.PI);
+
+                        scope.position.setX(x).setY(y).setZ(z);
+                        if (scope.resetOffset) {
+                            scope.offset.reset(0, 0, 0);
+                            switch (scope.resetOffset) {
+                                case scope.AXIS.X:
+                                    scope.offset.setX(x);
+                                    break;
+                                case scope.AXIS.Y:
+                                    scope.offset.setY(y);
+                                    break;
+                                case scope.AXIS.Z:
+                                    scope.offset.setX(z);
+                                    break;
+                                case scope.AXIS.XY:
+                                    scope.offset.setX(x);
+                                    scope.offset.setY(y);
+                                    break;
+                                default:
+                                    // XYZ
+                                    scope.offset.reset(scope.position);
+                                    break;
+
+                            }
+                            scope.resetOffset = false;
+                        }
+                        scope.position.subtractLocal(scope.offset);
+
+                        scope.position.setX(scope.position.x % 1);
+                        scope.position.setY((1 + scope.position.y) % 1);
+                        scope.position.setZ(scope.position.z % 1);
+
+                        scope.verticalDirectionBuffer.add(scope.position.x);
+                        if (scope.position.x > scope.verticalDirectionBuffer.getAverage()) {
+                            scope.verticalDirection = scope.DIRECTION_TYPES.BOTTOM;
+                        } else if (scope.position.x < scope.verticalDirectionBuffer.getAverage()) {
+                            scope.verticalDirection = scope.DIRECTION_TYPES.TOP;
+                        } else {
+                            scope.verticalDirection = scope.DIRECTION_TYPES.NONE;
+                        }
+
+
+                        // scope.horizontalDirectionBuffer.add(scope.position.y);
+                        // if (scope.position.y > scope.horizontalDirectionBuffer.getAverage()) {
+                        //     scope.horizontalDirection = scope.DIRECTION_TYPES.RIGHT;
+                        // } else if (scope.position.y < scope.horizontalDirectionBuffer.getAverage()) {
+                        //     scope.horizontalDirection = scope.DIRECTION_TYPES.LEFT;
+                        // } else {
+                        scope.horizontalDirection = scope.DIRECTION_TYPES.LEFT;
+                        // }
+
+                        //     console.log(euler.y , lastValY);
+                        // if (euler.y !== lastValY) {
+                        //     scope.horizontalDirectionBuffer.add(euler.y);
+                        //     lastValY = euler.y;
+                        // }
+                        var direction = scope.horizontalDirectionBuffer.getAverage().angleRelativeTo(directionVector2.resetByRad(euler.y));
+                        scope.horizontalDirectionBuffer.add(new Vector().resetByRad(euler.y));
+
+                            scope.horizontalDirection = scope.DIRECTION_TYPES.NONE;
+                        if (direction < 0) {
+                            scope.horizontalDirection = scope.DIRECTION_TYPES.LEFT;
+                        } else if (direction > 0) {
+                            scope.horizontalDirection = scope.DIRECTION_TYPES.RIGHT;
+                        }
+                        // if (scope.horizontalDirectionBuffer.getAverage().angle() !== 0) {
+                        // console.log('BAAAAm', euler.y, scope.horizontalDirectionBuffer.getAverage().angle());
+                        // }
+
+
+                        trigger(scope);
+
+                    }
+                };
+                for (var i = 0; i < displays.length; ++i) {
+                    global.animationFrame.addLoopListener('agency-pkg-gyro/Observer', trigger_.bind(displays[i]));
+                }
+            }.bind(this));
+        }
+
+        this.ready = true;
+    }
+};
+Observer.prototype.reset = function(axis) {
+
+    this.resetOffset = axis || true;
+};
+Observer.prototype.register = function(name, callback) {
+    this.callbacks.push({
+        name: name,
+        cb: callback
+    });
+};
+
+
+function quatToEuler(q1) {
     var pitchYawRoll = {};
     var sqw = q1.w * q1.w;
     var sqx = q1.x * q1.x;
@@ -115,104 +259,14 @@ Observer.prototype.quatToEuler = function(q1) {
     pitchYawRoll.y = Math.floor(heading * 1000) / 1000;
     pitchYawRoll.x = Math.floor(bank * 1000) / 1000;
     return pitchYawRoll;
-};
-Observer.prototype.setup = function() {
-    if (!this.ready) {
-        global.InitializeWebVRPolyfill();
-        if (global.navigator.getVRDisplays) {
-            global.navigator.getVRDisplays().then(function(displays) {
-                if (!displays.length) {
-                    //   VRSamplesUtil.addInfo("WebVR supported, but no VRDisplays found.");
-                    return;
-                }
-                var scope = this;
-
-                var trigger_ = function() {
-                    if (!scope.locked) {
-                        var orientation = this.getPose().orientation;
-
-                        var euler = scope.quatToEuler({
-                            x: orientation[0],
-                            y: orientation[1],
-                            z: orientation[2],
-                            w: orientation[3]
-                        });
-
-                        // X
-                        var x = euler.x;
-                        x += Math.PI / 2;
-                        x = (x / Math.PI);
-
-                        // Y
-                        var y = euler.y;
-                        if (y < 0) {
-                            y = 2 * Math.PI + y;
-                        }
-                        y = 1 - (y / Math.PI) / 2;
-
-                        // Z
-                        var z = euler.z;
-                        z += Math.PI / 2;
-                        z = (z / Math.PI);
-
-                        scope.position.setX(x).setY(y).setZ(z);
-                        if (scope.resetOffset) {
-                            scope.offset.reset(scope.position);
-                            scope.resetOffset = false;
-                        }
-                        scope.position.subtractLocal(scope.offset);
-
-                        scope.position.setX(scope.position.x % 1);
-                        scope.position.setY((1 + scope.position.y) % 1);
-                        scope.position.setZ((scope.position.z) % 1);
-
-                        scope.verticalDirectionBuffer.add(scope.position.x);
-                        if (scope.position.x > scope.verticalDirectionBuffer.getAverage()) {
-                            scope.verticalDirection = scope.DIRECTION_TYPES.BOTTOM;
-                        } else if (scope.position.x < scope.verticalDirectionBuffer.getAverage()) {
-                            scope.verticalDirection = scope.DIRECTION_TYPES.TOP;
-                        } else {
-                            scope.verticalDirection = scope.DIRECTION_TYPES.NONE;
-                        }
-                        scope.horizontalDirectionBuffer.add(scope.position.y);
-                        if (scope.position.y > scope.horizontalDirectionBuffer.getAverage()) {
-                            scope.horizontalDirection = scope.DIRECTION_TYPES.RIGHT;
-                        } else if (scope.position.y < scope.horizontalDirectionBuffer.getAverage()) {
-                            scope.horizontalDirection = scope.DIRECTION_TYPES.LEFT;
-                        } else {
-                            scope.horizontalDirection = scope.DIRECTION_TYPES.NONE;
-                        }
-
-                        trigger(scope);
-                    }
-                };
-                for (var i = 0; i < displays.length; ++i) {
-                    global.animationFrame.addLoopListener('agency-pkg-gyro/Observer', trigger_.bind(displays[i]));
-                }
-            }.bind(this));
-        }
-
-        this.ready = true;
-    }
-};
-Observer.prototype.reset = function() {
-    this.resetOffset = true;
-};
-Observer.prototype.register = function(name, callback) {
-    this.callbacks.push({
-        name: name,
-        cb: callback
-    });
-};
+}
 
 function trigger(scope) {
-    if (scope.lastPosition.x !== scope.position.x || scope.lastPosition.y !== scope.position.y) {
-        scope.lastPosition.x = scope.position.x;
-        scope.lastPosition.y = scope.position.y;
-        scope.callbacks.forEach(function(callback) {
-            callback.cb(scope);
-        });
-    }
+    scope.lastPosition.x = scope.position.x;
+    scope.lastPosition.y = scope.position.y;
+    scope.callbacks.forEach(function(callback) {
+        callback.cb(scope);
+    });
 }
 
 function gyroCheck(callback) {

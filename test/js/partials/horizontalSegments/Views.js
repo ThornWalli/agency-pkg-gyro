@@ -1,8 +1,6 @@
 "use strict";
 
 var HorizontalSegments = require('../../../../src/base/HorizontalSegments');
-var observer = require('../../../../src/observer');
-
 module.exports = HorizontalSegments.extend({
 
     modelConstructor: HorizontalSegments.prototype.modelConstructor.extend({
@@ -15,17 +13,8 @@ module.exports = HorizontalSegments.extend({
         }
     }),
 
-    events: {
-        'click .reset' : onClick
-    },
-
     initialize: function() {
         HorizontalSegments.prototype.initialize.apply(this, arguments);
     }
 
 });
-
-function onClick(e) {
-    e.preventDefault();
-    observer.reset();
-}

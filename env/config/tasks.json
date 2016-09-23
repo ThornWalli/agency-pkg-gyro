@@ -208,7 +208,7 @@
       }
     }],
     "watch": [{
-      "src": ["src/pcss/**/*.pcss", "test/pcss/**/*.pcss"]
+      "src": ["test/pcss/**/*.pcss", "src/**/*.pcss"]
     }]
   },
   "sitemap": {

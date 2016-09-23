@@ -17,7 +17,7 @@ global.WebVRConfig = {
     PREDICTION_TIME_S: 0.040, // Default: 0.040.
 
     // Flag to disable touch panner. In case you have your own touch controls.
-    TOUCH_PANNER_DISABLED: true, // Default: false.
+    TOUCH_PANNER_DISABLED: false, // Default: false.
 
     // Enable yaw panning only, disabling roll and pitch. This can be useful
     // for panoramas with nothing interesting above or below.
@@ -50,7 +50,6 @@ global.WebVRConfig = {
 require('webvr-polyfill/src/main');
 var Vector = require('agency-pkg-base/Vector');
 var VectorBuffer = require('agency-pkg-base/VectorBuffer');
-var Buffer = require('agency-pkg-base/Buffer');
 var Enum = require('enum');
 
 var Observer = function(withSetup) {
@@ -58,7 +57,7 @@ var Observer = function(withSetup) {
     this.position = new Vector(0, 0, 0);
     this.offset = new Vector(0, 0, 0);
     this.horizontalDirectionBuffer = new VectorBuffer(4);
-    this.verticalDirectionBuffer = new Buffer(4);
+    this.verticalDirectionBuffer = new VectorBuffer(4);
     gyroCheck(function(hasGyro) {
         this.hasGyro = hasGyro;
         if (hasGyro) {
@@ -89,14 +88,13 @@ Observer.prototype.lastPosition = {
     y: 0
 };
 
-var directionVector = new Vector();
-var directionVector2 = new Vector();
-var lastYVal = null;
-
+var directionVectorHorizontal = new Vector();
+var directionVectorVertical = new Vector();
 
 Observer.prototype.setup = function() {
     global.test = this;
 
+    var direction;
     if (!this.ready) {
         global.InitializeWebVRPolyfill();
         if (global.navigator.getVRDisplays) {
@@ -167,43 +165,23 @@ Observer.prototype.setup = function() {
                         scope.position.setY((1 + scope.position.y) % 1);
                         scope.position.setZ(scope.position.z % 1);
 
-                        scope.verticalDirectionBuffer.add(scope.position.x);
-                        if (scope.position.x > scope.verticalDirectionBuffer.getAverage()) {
-                            scope.verticalDirection = scope.DIRECTION_TYPES.BOTTOM;
-                        } else if (scope.position.x < scope.verticalDirectionBuffer.getAverage()) {
+                        scope.verticalDirectionBuffer.add(new Vector().resetByRad(euler.x));
+                        direction = scope.verticalDirectionBuffer.getAverage().angleRelativeTo(directionVectorVertical.resetByRad(euler.x));
+                        scope.verticalDirection = scope.DIRECTION_TYPES.NONE;
+                        if (direction < 0) {
                             scope.verticalDirection = scope.DIRECTION_TYPES.TOP;
-                        } else {
-                            scope.verticalDirection = scope.DIRECTION_TYPES.NONE;
+                        } else if (direction > 0) {
+                            scope.verticalDirection = scope.DIRECTION_TYPES.BOTTOM;
                         }
 
-
-                        // scope.horizontalDirectionBuffer.add(scope.position.y);
-                        // if (scope.position.y > scope.horizontalDirectionBuffer.getAverage()) {
-                        //     scope.horizontalDirection = scope.DIRECTION_TYPES.RIGHT;
-                        // } else if (scope.position.y < scope.horizontalDirectionBuffer.getAverage()) {
-                        //     scope.horizontalDirection = scope.DIRECTION_TYPES.LEFT;
-                        // } else {
-                        scope.horizontalDirection = scope.DIRECTION_TYPES.LEFT;
-                        // }
-
-                        //     console.log(euler.y , lastValY);
-                        // if (euler.y !== lastValY) {
-                        //     scope.horizontalDirectionBuffer.add(euler.y);
-                        //     lastValY = euler.y;
-                        // }
-                        var direction = scope.horizontalDirectionBuffer.getAverage().angleRelativeTo(directionVector2.resetByRad(euler.y));
                         scope.horizontalDirectionBuffer.add(new Vector().resetByRad(euler.y));
-
-                            scope.horizontalDirection = scope.DIRECTION_TYPES.NONE;
+                        direction = scope.horizontalDirectionBuffer.getAverage().angleRelativeTo(directionVectorHorizontal.resetByRad(euler.y));
+                        scope.horizontalDirection = scope.DIRECTION_TYPES.NONE;
                         if (direction < 0) {
                             scope.horizontalDirection = scope.DIRECTION_TYPES.LEFT;
                         } else if (direction > 0) {
                             scope.horizontalDirection = scope.DIRECTION_TYPES.RIGHT;
                         }
-                        // if (scope.horizontalDirectionBuffer.getAverage().angle() !== 0) {
-                        // console.log('BAAAAm', euler.y, scope.horizontalDirectionBuffer.getAverage().angle());
-                        // }
-
 
                         trigger(scope);
 

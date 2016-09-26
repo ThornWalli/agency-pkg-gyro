@@ -52,11 +52,13 @@ require('webvr-polyfill/src/main');
 var Vector = require('agency-pkg-base/Vector');
 var VectorBuffer = require('agency-pkg-base/VectorBuffer');
 var Enum = require('enum');
+var directionVectorHorizontal = new Vector();
 
 var Observer = function(withSetup) {
     this.resetOffset = false;
     this.position = new Vector(0, 0, 0);
     this.offset = new Vector(0, 0, 0);
+    this.overridePosition =  new Vector(0, 0, 0);
     this.horizontalDirectionBuffer = new VectorBuffer(4);
     gyroCheck(function(hasGyro) {
         this.hasGyro = hasGyro;
@@ -107,15 +109,8 @@ Observer.prototype.override = false;
  */
 Observer.prototype.overridePosition = null;
 
-var directionVectorHorizontal = new Vector();
-
 Observer.prototype.setup = function() {
     global.test = this;
-    this.overridePosition = {
-        x: 0,
-        y: 0,
-        z: 0
-    };
     var direction;
     if (!this.ready) {
         global.InitializeWebVRPolyfill();
@@ -127,18 +122,17 @@ Observer.prototype.setup = function() {
                 }
                 var scope = this;
 
-                var euler = {
-                    x: 0,
-                    y: 0,
-                    z: 0
-                };
-
+                var euler;
                 var trigger_ = function() {
                     if (!scope.locked) {
                         var orientation = this.getPose().orientation;
 
                         if (scope.override) {
-                            euler = scope.overridePosition;
+                            euler = {
+                                x: scope.overridePosition.x,
+                                y: scope.overridePosition.y,
+                                z: scope.overridePosition.z
+                            };
                         } else {
                             euler = quatToEuler({
                                 x: orientation[0],

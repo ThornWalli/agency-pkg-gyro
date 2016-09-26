@@ -1,6 +1,7 @@
 "use strict";
+var extend = require('lodash/extend');
 
-global.WebVRConfig = {
+global.WebVRConfig = extend({
     // Flag to disabled the UI in VR Mode.
     CARDBOARD_UI_DISABLED: false, // Default: false
 
@@ -46,7 +47,7 @@ global.WebVRConfig = {
     // gl.ARRAY_BUFFER_BINDING, gl.ELEMENT_ARRAY_BUFFER_BINDING,
     // and gl.TEXTURE_BINDING_2D for texture unit 0.
     DIRTY_SUBMIT_FRAME_BINDINGS: true // Default: false.
-};
+},global.WebVRConfig || {});
 require('webvr-polyfill/src/main');
 var Vector = require('agency-pkg-base/Vector');
 var VectorBuffer = require('agency-pkg-base/VectorBuffer');
@@ -57,7 +58,6 @@ var Observer = function(withSetup) {
     this.position = new Vector(0, 0, 0);
     this.offset = new Vector(0, 0, 0);
     this.horizontalDirectionBuffer = new VectorBuffer(4);
-    this.verticalDirectionBuffer = new VectorBuffer(4);
     gyroCheck(function(hasGyro) {
         this.hasGyro = hasGyro;
         if (hasGyro) {
@@ -76,24 +76,46 @@ Observer.prototype.DIRECTION_TYPES = new Enum(['NONE', 'LEFT', 'RIGHT', 'TOP', '
 Observer.prototype.position = null;
 Observer.prototype.horizontalDirectionBuffer = null;
 Observer.prototype.horizontalDirection = null;
-Observer.prototype.verticalDirectionBuffer = null;
-Observer.prototype.verticalDirection = null;
+/**
+ * When sets, is position callback deactivated.
+ * @type boolean
+ */
 Observer.prototype.locked = false;
+/**
+ * @type boolean
+ */
 Observer.prototype.ready = false;
+/**
+ * @type boolean
+ */
 Observer.prototype.hasGyro = false;
+/**
+ * @type array
+ */
 Observer.prototype.callbacks = [];
+/**
+ * @type object
+ */
 Observer.prototype.offset = null;
-Observer.prototype.lastPosition = {
-    x: 0,
-    y: 0
-};
+/**
+ * When sets, use simulated position.
+ * @type boolean
+ */
+Observer.prototype.override = false;
+/**
+ * @type object
+ */
+Observer.prototype.overridePosition = null;
 
 var directionVectorHorizontal = new Vector();
-var directionVectorVertical = new Vector();
 
 Observer.prototype.setup = function() {
     global.test = this;
-
+    this.overridePosition = {
+        x: 0,
+        y: 0,
+        z: 0
+    };
     var direction;
     if (!this.ready) {
         global.InitializeWebVRPolyfill();
@@ -105,17 +127,28 @@ Observer.prototype.setup = function() {
                 }
                 var scope = this;
 
+                var euler = {
+                    x: 0,
+                    y: 0,
+                    z: 0
+                };
+
                 var trigger_ = function() {
                     if (!scope.locked) {
                         var orientation = this.getPose().orientation;
 
-                        var euler = quatToEuler({
-                            x: orientation[0],
-                            y: orientation[1],
-                            z: orientation[2],
-                            w: orientation[3]
-                        });
+                        if (scope.override) {
+                            euler = scope.overridePosition;
+                        } else {
+                            euler = quatToEuler({
+                                x: orientation[0],
+                                y: orientation[1],
+                                z: orientation[2],
+                                w: orientation[3]
+                            });
+                        }
 
+                        /* ######## */
 
                         // X
                         var x = euler.x;
@@ -136,6 +169,7 @@ Observer.prototype.setup = function() {
 
                         scope.position.setX(x).setY(y).setZ(z);
                         if (scope.resetOffset) {
+                            // Set offset
                             scope.offset.reset(0, 0, 0);
                             switch (scope.resetOffset) {
                                 case scope.AXIS.X:
@@ -164,15 +198,6 @@ Observer.prototype.setup = function() {
                         scope.position.setX(scope.position.x % 1);
                         scope.position.setY((1 + scope.position.y) % 1);
                         scope.position.setZ(scope.position.z % 1);
-
-                        scope.verticalDirectionBuffer.add(new Vector().resetByRad(euler.x));
-                        direction = scope.verticalDirectionBuffer.getAverage().angleRelativeTo(directionVectorVertical.resetByRad(euler.x));
-                        scope.verticalDirection = scope.DIRECTION_TYPES.NONE;
-                        if (direction < 0) {
-                            scope.verticalDirection = scope.DIRECTION_TYPES.TOP;
-                        } else if (direction > 0) {
-                            scope.verticalDirection = scope.DIRECTION_TYPES.BOTTOM;
-                        }
 
                         scope.horizontalDirectionBuffer.add(new Vector().resetByRad(euler.y));
                         direction = scope.horizontalDirectionBuffer.getAverage().angleRelativeTo(directionVectorHorizontal.resetByRad(euler.y));
@@ -240,8 +265,6 @@ function quatToEuler(q1) {
 }
 
 function trigger(scope) {
-    scope.lastPosition.x = scope.position.x;
-    scope.lastPosition.y = scope.position.y;
     scope.callbacks.forEach(function(callback) {
         callback.cb(scope);
     });

@@ -47,18 +47,20 @@ global.WebVRConfig = extend({
     // gl.ARRAY_BUFFER_BINDING, gl.ELEMENT_ARRAY_BUFFER_BINDING,
     // and gl.TEXTURE_BINDING_2D for texture unit 0.
     DIRTY_SUBMIT_FRAME_BINDINGS: true // Default: false.
-},global.WebVRConfig || {});
+}, global.WebVRConfig || {});
 require('webvr-polyfill/src/main');
 var Vector = require('agency-pkg-base/Vector');
 var VectorBuffer = require('agency-pkg-base/VectorBuffer');
 var Enum = require('enum');
-var directionVectorHorizontal = new Vector();
 
 var Observer = function(withSetup) {
     this.resetOffset = false;
+    this.poseOffset = new Vector(0, 0, 0);
+    this.euler = new Vector(0, 0, 0);
     this.position = new Vector(0, 0, 0);
-    this.offset = new Vector(0, 0, 0);
-    this.overridePosition =  new Vector(0, 0, 0);
+    this.resetOffsetValues = new Vector(0, 0, 0);
+    this.offsetValues = new Vector(0, 0, 0);
+    this.overridePosition = new Vector(0, 0, 0);
     this.horizontalDirectionBuffer = new VectorBuffer(4);
     gyroCheck(function(hasGyro) {
         this.hasGyro = hasGyro;
@@ -75,8 +77,25 @@ var Observer = function(withSetup) {
 
 Observer.prototype.AXIS = new Enum(['X', 'Y', 'Z', 'XY', 'XYZ']);
 Observer.prototype.DIRECTION_TYPES = new Enum(['NONE', 'LEFT', 'RIGHT', 'TOP', 'BOTTOM']);
+/**
+ * @type agency-pkg-base/Vector
+ */
+Observer.prototype.poseOffset = null;
+/**
+ * @type agency-pkg-base/Vector
+ */
+Observer.prototype.euler = null;
+/**
+ * @type agency-pkg-base/Vector
+ */
 Observer.prototype.position = null;
+/**
+ * @type agency-pkg-base/VectorBuffer
+ */
 Observer.prototype.horizontalDirectionBuffer = null;
+/**
+ * @type enum
+ */
 Observer.prototype.horizontalDirection = null;
 /**
  * When sets, is position callback deactivated.
@@ -96,9 +115,21 @@ Observer.prototype.hasGyro = false;
  */
 Observer.prototype.callbacks = [];
 /**
+ * @type boolean
+ */
+Observer.prototype.setOffset = false;
+/**
+ * @type boolean
+ */
+Observer.prototype.resetOffset = false;
+/**
  * @type object
  */
-Observer.prototype.offset = null;
+Observer.prototype.resetOffsetValues = null;
+/**
+ * @type object
+ */
+Observer.prototype.offsetValues = null;
 /**
  * When sets, use simulated position.
  * @type boolean
@@ -109,8 +140,8 @@ Observer.prototype.override = false;
  */
 Observer.prototype.overridePosition = null;
 
+var directionVectorHorizontal = new Vector(0, 0, 0);
 Observer.prototype.setup = function() {
-    global.test = this;
     var direction;
     if (!this.ready) {
         global.InitializeWebVRPolyfill();
@@ -121,80 +152,84 @@ Observer.prototype.setup = function() {
                     return;
                 }
                 var scope = this;
-
-                var euler;
+                var quadEuler;
                 var trigger_ = function() {
                     if (!scope.locked) {
                         var orientation = this.getPose().orientation;
 
                         if (scope.override) {
-                            euler = {
-                                x: scope.overridePosition.x,
-                                y: scope.overridePosition.y,
-                                z: scope.overridePosition.z
-                            };
+                            scope.euler.resetValues(scope.overridePosition.x, scope.overridePosition.y, scope.overridePosition.z);
                         } else {
-                            euler = quatToEuler({
+                            quadEuler = quatToEuler({
                                 x: orientation[0],
                                 y: orientation[1],
                                 z: orientation[2],
                                 w: orientation[3]
                             });
+                            scope.euler.resetValues(quadEuler.x, quadEuler.y, quadEuler.z);
                         }
 
                         /* ######## */
 
+                        if (scope.setOffset) {
+                            scope.poseOffset.reset(scope.euler);
+                            scope.setOffset = false;
+                        }
+                        scope.euler.subtractLocal(scope.poseOffset);
+                        scope.euler.subtractLocal(scope.offsetValues);
+
+                        var x = scope.euler.x,
+                            y = scope.euler.y,
+                            z = scope.euler.z;
+
                         // X
-                        var x = euler.x;
                         x += Math.PI / 2;
                         x = (x / Math.PI);
 
                         // Y
-                        var y = euler.y;
                         if (y < 0) {
                             y = 2 * Math.PI + y;
                         }
                         y = 1 - (y / Math.PI) / 2;
 
                         // Z
-                        var z = euler.z;
                         z += Math.PI / 2;
                         z = (z / Math.PI);
 
                         scope.position.setX(x).setY(y).setZ(z);
                         if (scope.resetOffset) {
                             // Set offset
-                            scope.offset.reset(0, 0, 0);
+                            scope.resetOffsetValues.reset(0, 0, 0);
                             switch (scope.resetOffset) {
                                 case scope.AXIS.X:
-                                    scope.offset.setX(x);
+                                    scope.resetOffsetValues.setX(x);
                                     break;
                                 case scope.AXIS.Y:
-                                    scope.offset.setY(y);
+                                    scope.resetOffsetValues.setY(y);
                                     break;
                                 case scope.AXIS.Z:
-                                    scope.offset.setX(z);
+                                    scope.resetOffsetValues.setX(z);
                                     break;
                                 case scope.AXIS.XY:
-                                    scope.offset.setX(x);
-                                    scope.offset.setY(y);
+                                    scope.resetOffsetValues.setX(x);
+                                    scope.resetOffsetValues.setY(y);
                                     break;
                                 default:
                                     // XYZ
-                                    scope.offset.reset(scope.position);
+                                    scope.resetOffsetValues.reset(scope.position);
                                     break;
 
                             }
                             scope.resetOffset = false;
                         }
-                        scope.position.subtractLocal(scope.offset);
+                        scope.position.subtractLocal(scope.resetOffsetValues);
 
                         scope.position.setX(scope.position.x % 1);
                         scope.position.setY((1 + scope.position.y) % 1);
                         scope.position.setZ(scope.position.z % 1);
 
-                        scope.horizontalDirectionBuffer.add(new Vector().resetByRad(euler.y));
-                        direction = scope.horizontalDirectionBuffer.getAverage().angleRelativeTo(directionVectorHorizontal.resetByRad(euler.y));
+                        scope.horizontalDirectionBuffer.add(new Vector().resetByRad(scope.euler.y));
+                        direction = scope.horizontalDirectionBuffer.getAverage().angleRelativeTo(directionVectorHorizontal.resetByRad(scope.euler.y));
                         scope.horizontalDirection = scope.DIRECTION_TYPES.NONE;
                         if (direction < 0) {
                             scope.horizontalDirection = scope.DIRECTION_TYPES.LEFT;
@@ -211,13 +246,15 @@ Observer.prototype.setup = function() {
                 }
             }.bind(this));
         }
-
         this.ready = true;
     }
 };
 Observer.prototype.reset = function(axis) {
-
     this.resetOffset = axis || true;
+};
+Observer.prototype.offset = function(x, y, z) {
+    this.offsetValues.resetValues(x, y, z);
+    this.setOffset = true;
 };
 Observer.prototype.register = function(name, callback) {
     this.callbacks.push({

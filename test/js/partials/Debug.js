@@ -17,7 +17,7 @@ module.exports = Controller.extend({
 
 function onObserver(observer) {
     this.directionEl.innerHTML = [
-        'X: ' + (Math.ceil(observer.position.x * 100) / 100) + ' ' + observer.horizontalDirection.key,
-        'Y: ' + (Math.ceil(observer.position.y * 100) / 100) 
+        'H: ' + (Math.ceil(observer.position.y * 100) / 100) + ' ' + observer.horizontalDirection.key,
+        'V: ' + (Math.ceil(observer.position.x * 100) / 100)
     ].join('<br />');
 }

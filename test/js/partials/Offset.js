@@ -26,9 +26,8 @@ module.exports = Controller.extend({
 
 function onClick(e) {
     if (e.target.dataset.value) {
-    observer.offset(0, parseFloat(e.target.dataset.value), 0);
-
+        observer.offset(0, parseFloat(e.target.dataset.value), 0);
     } else {
-        observer.offset(0, parseFloat(this.queryByHook('offset').value), 0);
+        observer.offset(0, parseFloat(this.queryByHook('offset').value) * Math.PI, 0);
     }
 }

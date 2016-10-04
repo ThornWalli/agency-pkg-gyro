@@ -171,6 +171,39 @@ Observer.prototype.setup = function() {
 
                         /* ######## */
 
+                        var x = scope.euler.x,
+                            y = scope.euler.y,
+                            z = scope.euler.z;
+
+                        if (!scope.override) {
+                            if (scope.resetOffset) {
+                                // Set offset
+                                scope.resetOffsetValues.reset(0, 0, 0);
+                                switch (scope.resetOffset) {
+                                    case scope.AXIS.X:
+                                        scope.resetOffsetValues.setX(x);
+                                        break;
+                                    case scope.AXIS.Y:
+                                        scope.resetOffsetValues.setY(y);
+                                        break;
+                                    case scope.AXIS.Z:
+                                        scope.resetOffsetValues.setX(z);
+                                        break;
+                                    case scope.AXIS.XY:
+                                        scope.resetOffsetValues.setX(x);
+                                        scope.resetOffsetValues.setY(y);
+                                        break;
+                                    default:
+                                        // XYZ
+                                        scope.resetOffsetValues.reset(scope.euler);
+                                        break;
+
+                                }
+                                scope.resetOffset = false;
+                            }
+                            scope.euler.subtractLocal(scope.resetOffsetValues);
+                        }
+
                         if (scope.setOffset) {
                             scope.poseOffset.reset(scope.euler);
                             scope.setOffset = false;
@@ -178,9 +211,9 @@ Observer.prototype.setup = function() {
                         scope.euler.subtractLocal(scope.poseOffset);
                         scope.euler.subtractLocal(scope.offsetValues);
 
-                        var x = scope.euler.x,
-                            y = scope.euler.y,
-                            z = scope.euler.z;
+                        x = scope.euler.x;
+                        y = scope.euler.y;
+                        z = scope.euler.z;
 
                         // X
                         x += Math.PI / 2;
@@ -197,32 +230,6 @@ Observer.prototype.setup = function() {
                         z = (z / Math.PI);
 
                         scope.position.setX(x).setY(y).setZ(z);
-                        if (scope.resetOffset) {
-                            // Set offset
-                            scope.resetOffsetValues.reset(0, 0, 0);
-                            switch (scope.resetOffset) {
-                                case scope.AXIS.X:
-                                    scope.resetOffsetValues.setX(x);
-                                    break;
-                                case scope.AXIS.Y:
-                                    scope.resetOffsetValues.setY(y);
-                                    break;
-                                case scope.AXIS.Z:
-                                    scope.resetOffsetValues.setX(z);
-                                    break;
-                                case scope.AXIS.XY:
-                                    scope.resetOffsetValues.setX(x);
-                                    scope.resetOffsetValues.setY(y);
-                                    break;
-                                default:
-                                    // XYZ
-                                    scope.resetOffsetValues.reset(scope.position);
-                                    break;
-
-                            }
-                            scope.resetOffset = false;
-                        }
-                        scope.position.subtractLocal(scope.resetOffsetValues);
 
                         scope.position.setX(scope.position.x % 1);
                         scope.position.setY((1 + scope.position.y) % 1);

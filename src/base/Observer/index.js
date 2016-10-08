@@ -215,7 +215,7 @@ Observer.prototype.setup = function() {
                         scope.position.setZ(scope.position.z % 1);
 
                         scope.horizontalDirectionBuffer.add(new Vector().resetByRad(scope.euler.y));
-                        direction = scope.horizontalDirectionBuffer.getAverage().angleRelativeTo(directionVectorHorizontal.resetByRad(scope.euler.y));
+                        direction = scope.horizontalDirectionBuffer.getAverage().radRelativeTo(directionVectorHorizontal.resetByRad(scope.euler.y));
                         scope.horizontalDirection = scope.DIRECTION_TYPES.NONE;
                         if (direction < 0) {
                             scope.horizontalDirection = scope.DIRECTION_TYPES.LEFT;

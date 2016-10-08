@@ -55,8 +55,9 @@ var Enum = require('enum');
 
 var Observer = function(withSetup) {
     this.resetOffset = false;
-    this.poseOffset = new Vector(0, 0, 0);
     this.euler = new Vector(0, 0, 0);
+    this.eulerNonOffset = new Vector(0, 0, 0);
+
     this.position = new Vector(0, 0, 0);
     this.resetOffsetValues = new Vector(0, 0, 0);
     this.offsetValues = new Vector(0, 0, 0);
@@ -80,11 +81,14 @@ Observer.prototype.DIRECTION_TYPES = new Enum(['NONE', 'LEFT', 'RIGHT', 'TOP', '
 /**
  * @type agency-pkg-base/Vector
  */
-Observer.prototype.poseOffset = null;
+Observer.prototype.euler = null;
 /**
  * @type agency-pkg-base/Vector
  */
-Observer.prototype.euler = null;
+Observer.prototype.eulerNonOffset = null;
+
+
+
 /**
  * @type agency-pkg-base/Vector
  */
@@ -148,7 +152,6 @@ Observer.prototype.setup = function() {
         if (global.navigator.getVRDisplays) {
             global.navigator.getVRDisplays().then(function(displays) {
                 if (!displays.length) {
-                    //   VRSamplesUtil.addInfo("WebVR supported, but no VRDisplays found.");
                     return;
                 }
                 var scope = this;
@@ -177,39 +180,15 @@ Observer.prototype.setup = function() {
 
                         if (!scope.override) {
                             if (scope.resetOffset) {
-                                // Set offset
-                                scope.resetOffsetValues.reset(0, 0, 0);
-                                switch (scope.resetOffset) {
-                                    case scope.AXIS.X:
-                                        scope.resetOffsetValues.setX(x);
-                                        break;
-                                    case scope.AXIS.Y:
-                                        scope.resetOffsetValues.setY(y);
-                                        break;
-                                    case scope.AXIS.Z:
-                                        scope.resetOffsetValues.setX(z);
-                                        break;
-                                    case scope.AXIS.XY:
-                                        scope.resetOffsetValues.setX(x);
-                                        scope.resetOffsetValues.setY(y);
-                                        break;
-                                    default:
-                                        // XYZ
-                                        scope.resetOffsetValues.reset(scope.euler);
-                                        break;
-
-                                }
-                                scope.resetOffset = false;
+                                resetOffset(scope,x,y,z);
                             }
                             scope.euler.subtractLocal(scope.resetOffsetValues);
                         }
 
-                        if (scope.setOffset) {
-                            scope.poseOffset.reset(scope.euler);
-                            scope.setOffset = false;
-                        }
-                        scope.euler.subtractLocal(scope.poseOffset);
+                        scope.eulerNonOffset.reset(scope.euler);
                         scope.euler.subtractLocal(scope.offsetValues);
+
+                        scope.euler.y = cleanRad(scope.euler.y);
 
                         x = scope.euler.x;
                         y = scope.euler.y;
@@ -260,7 +239,12 @@ Observer.prototype.reset = function(axis) {
     this.resetOffset = axis || true;
 };
 Observer.prototype.offset = function(x, y, z) {
+    console.log('offset', y, this.offsetValues.y);
     this.offsetValues.resetValues(x, y, z);
+    this.setOffset = true;
+};
+Observer.prototype.addOffset = function(x, y, z) {
+    this.offsetValues.addValuesLocal(x, y, z);
     this.setOffset = true;
 };
 Observer.prototype.register = function(name, callback) {
@@ -270,6 +254,10 @@ Observer.prototype.register = function(name, callback) {
     });
 };
 
+var cleanRadVector = new Vector();
+function cleanRad(y) {
+    return cleanRadVector.resetByRad(y).rad();
+}
 
 function quatToEuler(q1) {
     var pitchYawRoll = {};
@@ -317,6 +305,32 @@ function gyroCheck(callback) {
         callback(hasGyro);
     }
     window.addEventListener('deviceorientation', handler, false);
+}
+
+function resetOffset(scope,x,y,z){
+    // Set offset
+    scope.resetOffsetValues.reset(0, 0, 0);
+    switch (scope.resetOffset) {
+        case scope.AXIS.X:
+            scope.resetOffsetValues.setX(x);
+            break;
+        case scope.AXIS.Y:
+            scope.resetOffsetValues.setY(y);
+            break;
+        case scope.AXIS.Z:
+            scope.resetOffsetValues.setX(z);
+            break;
+        case scope.AXIS.XY:
+            scope.resetOffsetValues.setX(x);
+            scope.resetOffsetValues.setY(y);
+            break;
+        default:
+            // XYZ
+            scope.resetOffsetValues.reset(scope.euler);
+            break;
+
+    }
+    scope.resetOffset = false;
 }
 
 module.exports = Observer;
